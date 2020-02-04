@@ -4,7 +4,7 @@ Slack bot
 
 ## Libraries
 
-[Slacker](https://github.com/shomali11/slacker) - Slack Bot Framework
+[Slack](https://github.com/nlopes/slack) - Slack Bot API client
 
 [ansi](https://github.com/mgutz/ansi) - Pretty terminal colors
 
@@ -25,3 +25,7 @@ token=slackbot_api_token
 
 - in the repo, run `docker-compose up -d`
 - to shut down bot, run `docker-compose down`
+
+_If docker isn't working
+
+`token=slackbot_api_token ./chihuahua-bot`
