@@ -1,15 +1,19 @@
-# Start from a Debian image with the latest version of Go installed
-# and a workspace (GOPATH) configured at /go.
-FROM golang
+# build stage
+FROM golang as builder
 
-# Copy the local package files to the container's workspace.
-ADD . /go/src/github.com/cephalization/chihuahua-bot
+WORKDIR /app
 
-# Build the chibot command inside the container.
-RUN go install github.com/cephalization/chihuahua-bot
+COPY go.mod .
+COPY go.sum .
 
-# Run the chihuahua-bot command by default when the container starts.
-ENTRYPOINT /go/bin/chihuahua-bot
+RUN go mod download
 
-# Document that the service listens on port 8080.
+COPY . .
+
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build
+
+# final stage
+FROM scratch
+COPY --from=builder /app/chihuahua-bot /app/
 EXPOSE 8080
+ENTRYPOINT ["/app/chihuahua-bot"]
