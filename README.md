@@ -5,7 +5,8 @@ Slack bot
 ## Libraries
 
 [Slacker](https://github.com/shomali11/slacker) - Slack Bot Framework
-[ansi]("https://github.com/mgutz/ansi") - Pretty terminal colors
+
+[ansi](https://github.com/mgutz/ansi) - Pretty terminal colors
 
 ## Development
 
