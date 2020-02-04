@@ -17,6 +17,7 @@ Slack bot
   - Should probably just do all of this in windows subsystem for linux (wsl)
 - clone this repo
 - create `.env` file with the following contents
+  - token obtained from https://api.slack.com/legacy/custom-integrations/legacy-tokens once you have permissions to develop on the bot
 
 ```
 token=slackbot_api_token
