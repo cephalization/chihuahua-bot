@@ -20,6 +20,21 @@ func main() {
 	}
 
 	api := slack.New(token, slack.OptionDebug(true))
+
+	auth, err := api.AuthTest()
+	if err != nil {
+		log.Fatal(err)
+		os.Exit(1)
+	}
+
+	botUser, err := api.GetUserInfo(auth.UserID)
+	if err != nil {
+		log.Fatal(err)
+		os.Exit(1)
+	}
+
+	botID := botUser.ID
+
 	rtm := api.NewRTM()
 	go rtm.ManageConnection()
 
@@ -28,8 +43,12 @@ func main() {
 	for msg := range rtm.IncomingEvents {
 		switch ev := msg.Data.(type) {
 		case *slack.MessageEvent:
-			log.Printf("\n\nTRIGGERED: %s\n\n", ev.Text)
-			if strings.Contains(ev.Text, "taco") {
+			// Ignore messages from this bot
+			if ev.BotID != "" || ev.BotID == botID {
+				break
+			}
+
+			if strings.Contains(strings.ToLower(ev.Text), "taco") {
 				rtm.PostMessage(ev.Channel, slack.MsgOptionText("mmm... tacos...", false))
 			}
 		default:
