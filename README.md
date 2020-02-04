@@ -11,8 +11,16 @@ Slack bot
 ## Development
 
 - install `go 1.13`
-- install `docker-cli`
+- install `docker`
+  - If using windows 10 home, install [docker-toolbox](https://docs.docker.com/toolbox/toolbox_install_windows/) instead
+  - If you use toolbox you'll have to use their "quickstart-terminal" unfortunately
+  - Should probably just do all of this in windows subsystem for linux (wsl)
 - clone this repo
-- in the repo, run
-  - windows `./start.cmd`
-  - linux `./start.sh`
+- create `.env` file with the following contents
+
+```
+token=slackbot_api_token
+```
+
+- in the repo, run `docker-compose up -d`
+- to shut down bot, run `docker-compose down`

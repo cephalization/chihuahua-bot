@@ -1,0 +1,11 @@
+# Docker compose syntax version
+version: "3"
+
+# Container definitions
+services:
+  chibot:
+    build: ./
+    volumes:
+      - ./
+    ports:
+      - 8080:8080
