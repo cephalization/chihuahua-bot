@@ -10,6 +10,8 @@ Slack bot
 ## Development
 
 - install `go 1.13`
+- install `docker-cli`
 - clone this repo
-- Add token to env
-- in the repo, run `go run cmd/chibot/main.go`
+- in the repo, run
+  - windows `./start.cmd`
+  - linux `./start.sh`
