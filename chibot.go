@@ -20,22 +20,22 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Setup an error context for picking up errors with the bot thread
-	botErrorContext, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
 	// Instantiate slack bot
 	bot := slacker.NewClient(token)
 
 	// Register commands onto the bot
 	commands.RegisterCommands(bot)
 
-	// Configure bot use the error context when it encounters errors in the background
-	err = bot.Listen(botErrorContext)
+	log.Printf("\n\nChihuahua bot is running, %s\n", ansi.Color("bark! bark!", "green"))
+
+	// Setup a context for picking up messages from the bot thread
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	// Configure bot to listen for messages, bot is now running
+	err = bot.Listen(ctx)
 	if err != nil {
 		log.Fatal(err)
 		os.Exit(1)
 	}
-
-	log.Printf("Chihuahua bot is running %s!", ansi.Color("bark", ansi.Cyan))
 }
