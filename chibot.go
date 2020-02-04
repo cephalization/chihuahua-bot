@@ -21,7 +21,7 @@ func main() {
 	}
 
 	// Instantiate slack bot
-	bot := slacker.NewClient(token)
+	bot := slacker.NewClient(token, slacker.WithDebug(true))
 
 	// Register commands onto the bot
 	commands.RegisterCommands(bot)
