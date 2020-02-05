@@ -14,6 +14,7 @@ type Handler struct {
 var definitions = [...]*HandlerDefinition{
 	TacoHandler,
 	KarmaHandler,
+	ShowKarmaHandler,
 }
 
 // HandleMessages from the real time messaging api, passing them off to the correct fn

@@ -117,3 +117,21 @@ var KarmaHandler = &HandlerDefinition{
 		}
 	},
 }
+
+// ShowKarmaHandler reports the store karma value of everything after the word "karma"
+var ShowKarmaHandler = &HandlerDefinition{
+	Match: func(message string) bool {
+		return strings.HasPrefix(strings.ToLower(message), "karma") && len(strings.TrimSpace(message)) > len("karma")
+	},
+	Handle: func(reply ReplyFn, event *slack.MessageEvent) {
+		subjects := strings.Split(event.Text, " ")[1:]
+
+		buf := ""
+		for _, subject := range subjects {
+			karma := "?"
+			buf += fmt.Sprintf("Karma for `%s` is %s\n", subject, karma)
+		}
+
+		reply(event, buf)
+	},
+}
