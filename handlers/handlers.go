@@ -1,6 +1,8 @@
 package handlers
 
-import "github.com/nlopes/slack"
+import (
+	"github.com/nlopes/slack"
+)
 
 // ReplyFn replies to the channel that triggered this event with a message
 type ReplyFn func(*slack.MessageEvent, string)
@@ -9,8 +11,11 @@ type ReplyFn func(*slack.MessageEvent, string)
 type Handler struct {
 	Reply ReplyFn
 	RTM   *slack.RTM
+	API   *slack.Client
+	ID    string
 }
 
+// These definitions will listen for message text and then perform an action
 var definitions = [...]*HandlerDefinition{
 	TacoHandler,
 	KarmaHandler,
@@ -29,4 +34,72 @@ func (handler *Handler) HandleMessages(event *slack.MessageEvent) {
 			definition.Handle(handler.Reply, event)
 		}
 	}
+}
+
+// Listen infinitely for slack events (messages) in real time
+func (handler *Handler) Listen() {
+	handleMessages := handler.HandleMessages
+	rtm := handler.RTM
+	ID := handler.ID
+
+	go rtm.ManageConnection()
+
+	// Read messages as they come in, pass them to the appropriate handlers
+	for msg := range rtm.IncomingEvents {
+		switch event := msg.Data.(type) {
+		case *slack.MessageEvent:
+			// Ignore messages from this bot
+			if event.BotID != "" || event.BotID == ID {
+				break
+			}
+
+			handleMessages(event)
+			break
+		default:
+			break
+		}
+	}
+}
+
+// NewClient returns a slack client that is ready to listen to real time messages
+func NewClient(token string) (*Handler, error) {
+	handler := &Handler{}
+
+	// slack client
+	api := slack.New(token, slack.OptionDebug(true))
+
+	// check validity of auth token
+	auth, err := api.AuthTest()
+	if err != nil {
+		return handler, err
+	}
+
+	// Parse bot's auth info
+	botUser, err := api.GetUserInfo(auth.UserID)
+	if err != nil {
+		return handler, err
+	}
+
+	// Our bot's ID
+	botID := botUser.ID
+
+	// Connect to the real time messaging socket
+	// This gets us an async channel of messages
+	rtm := api.NewRTM()
+
+	// Create a closure around our ideal rtm messaging function
+	// Use this for easy replying
+	reply := func(event *slack.MessageEvent, message string) {
+		rtm.PostMessage(event.Channel, slack.MsgOptionText(message, false))
+	}
+
+	// Create our client handler
+	handler = &Handler{
+		API:   api,
+		RTM:   rtm,
+		ID:    botID,
+		Reply: reply,
+	}
+
+	return handler, nil
 }
