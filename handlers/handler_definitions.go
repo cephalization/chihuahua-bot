@@ -11,7 +11,7 @@ import (
 // HandlerDefinition models a function that replies to a message that matches its criteria
 type HandlerDefinition struct {
 	Match  func(string) bool
-	Handle func(func(*slack.MessageEvent, string), *slack.MessageEvent)
+	Handle func(ReplyFn, *slack.MessageEvent)
 }
 
 // TacoHandler responds to a message containing the substring "taco"
@@ -19,7 +19,7 @@ var TacoHandler = &HandlerDefinition{
 	Match: func(message string) bool {
 		return strings.Contains(strings.ToLower(message), "taco")
 	},
-	Handle: func(reply func(*slack.MessageEvent, string), event *slack.MessageEvent) {
+	Handle: func(reply ReplyFn, event *slack.MessageEvent) {
 		reply(event, "mmm... tacos...")
 	},
 }
@@ -41,7 +41,7 @@ var KarmaHandler = &HandlerDefinition{
 
 		return matched
 	},
-	Handle: func(reply func(*slack.MessageEvent, string), event *slack.MessageEvent) {
+	Handle: func(reply ReplyFn, event *slack.MessageEvent) {
 		expression, err := regexp.Compile(karmaRegex)
 		if err != nil {
 			reply(event, "Could not track karma on your message, sorry!")

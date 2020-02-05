@@ -2,9 +2,12 @@ package handlers
 
 import "github.com/nlopes/slack"
 
+// ReplyFn replies to the channel that triggered this event with a message
+type ReplyFn func(*slack.MessageEvent, string)
+
 // Handler contains utils to help message handlers respond to messages
 type Handler struct {
-	Reply func(event *slack.MessageEvent, message string)
+	Reply ReplyFn
 }
 
 var definitions = [...]*HandlerDefinition{
