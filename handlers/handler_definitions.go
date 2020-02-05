@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/nlopes/slack"
+	"github.com/thoas/go-funk"
 )
 
 // HandlerDefinition models a function that replies to a message that matches its criteria
@@ -14,13 +15,37 @@ type HandlerDefinition struct {
 	Handle func(ReplyFn, *slack.MessageEvent)
 }
 
+var goodFoods = []string{
+	"tacos",
+	"enchiladas",
+	"burritos",
+	"churros",
+	"beans",
+	"salsa",
+	"nachos",
+}
+
 // TacoHandler responds to a message containing the substring "taco"
 var TacoHandler = &HandlerDefinition{
 	Match: func(message string) bool {
-		return strings.Contains(strings.ToLower(message), "taco")
+		return strings.Contains(strings.Join(goodFoods, " "), strings.ToLower(message))
 	},
 	Handle: func(reply ReplyFn, event *slack.MessageEvent) {
-		reply(event, "mmm... tacos...")
+		goodFood, found := funk.FindString(goodFoods, func(food string) bool {
+			if strings.Contains(food, event.Text) {
+				return true
+			}
+
+			return false
+		})
+
+		if !found {
+			reply(event, "mmm... food...")
+			return
+		}
+
+		buf := fmt.Sprintf("mmm... %s...", goodFood)
+		reply(event, buf)
 	},
 }
 
