@@ -51,7 +51,7 @@ func main() {
 	}
 
 	// Instantiate a message handler with our reply fn
-	messageHandler := handlers.Handler{Reply: reply}
+	messageHandler := handlers.Handler{Reply: reply, RTM: rtm}
 
 	// Read messages as they come in, pass them to the appropriate handlers
 	for msg := range rtm.IncomingEvents {

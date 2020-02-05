@@ -8,6 +8,7 @@ type ReplyFn func(*slack.MessageEvent, string)
 // Handler contains utils to help message handlers respond to messages
 type Handler struct {
 	Reply ReplyFn
+	RTM   *slack.RTM
 }
 
 var definitions = [...]*HandlerDefinition{
@@ -21,6 +22,9 @@ func (handler *Handler) HandleMessages(event *slack.MessageEvent) {
 
 	for _, definition := range definitions {
 		if definition.Match(message) {
+			handler.RTM.NewTypingMessage(event.Channel)
+
+			// This function must reply with something or else the bot will appear to be typing forever
 			definition.Handle(handler.Reply, event)
 		}
 	}
