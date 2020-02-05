@@ -24,6 +24,8 @@ token=slackbot_api_token
 ```
 
 - in the repo, run `docker-compose up -d`
+  - if you leave out the `-d` you can see all of the logging and messages
+  - `ctrl-c` will kill the bot like this
 - to shut down bot, run `docker-compose down`
 
 _If docker isn't working
