@@ -82,13 +82,38 @@ var KarmaHandler = &HandlerDefinition{
 			return
 		}
 
-		subject := expression.FindAllString(event.Text, -1)
+		// array of all strings that match the regex
+		// ex. 'apple++'
+		subjects := expression.FindAllString(event.Text, -1)
 
-		if len(subject) == 0 {
-			reply(event, "Sorry, I'm a little confused about what I am tracking karma on!")
-		} else {
-			buf := fmt.Sprintf("Tracking karma on %s", strings.Join(subject, ", "))
+		const add = byte('+')
+		const subtract = byte('-')
+
+		// right now buffer is just gonna store a string saying what things to update
+		// in the future it should probably be some kind of map so we can batch all the adds and subtracts
+		// into 1-2 calls to the database
+		buf := ""
+
+		for _, subject := range subjects {
+			action := subject[len(subject)-1]
+
+			if action == add {
+				// debug message
+				buf += fmt.Sprintf("Adding karma to %s\n", subject[:len(subject)-2])
+
+				// TODO: connect to db, increment score for this subject
+			} else if action == subtract {
+				// debug message
+				buf += fmt.Sprintf("Removing karma from %s\n", subject[:len(subject)-2])
+
+				// TODO: connect to db, decrement score for this subject
+			}
+		}
+
+		if len(buf) > 0 {
 			reply(event, buf)
+		} else {
+			reply(event, "Sorry, I'm a little confused about what I am tracking karma on!")
 		}
 	},
 }
