@@ -16,23 +16,32 @@ type HandlerDefinition struct {
 }
 
 var goodFoods = []string{
-	"tacos",
-	"enchiladas",
-	"burritos",
-	"churros",
-	"beans",
+	"taco",
+	"enchilada",
+	"burrito",
+	"churro",
+	"bean",
 	"salsa",
-	"nachos",
+	"nacho",
 }
 
 // TacoHandler responds to a message containing the substring "taco"
 var TacoHandler = &HandlerDefinition{
 	Match: func(message string) bool {
-		return strings.Contains(strings.Join(goodFoods, " "), strings.ToLower(message))
+		validFood := false
+
+		for _, food := range goodFoods {
+			if strings.Contains(strings.ToLower(message), food) {
+				validFood = true
+				continue
+			}
+		}
+
+		return validFood
 	},
 	Handle: func(reply ReplyFn, event *slack.MessageEvent) {
 		goodFood, found := funk.FindString(goodFoods, func(food string) bool {
-			if strings.Contains(food, event.Text) {
+			if strings.Contains(event.Text, food) {
 				return true
 			}
 
