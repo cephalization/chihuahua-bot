@@ -16,7 +16,7 @@ type Handler struct {
 }
 
 // These definitions will listen for message text and then perform an action
-var definitions = [...]*HandlerDefinition{
+var definitions = []*HandlerDefinition{
 	TacoHandler,
 	KarmaHandler,
 	ShowKarmaHandler,
