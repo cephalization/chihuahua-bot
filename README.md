@@ -3,12 +3,16 @@
 Slack bot
 
 ## Libraries
+---
 
 [Slack](https://github.com/nlopes/slack) - Slack Bot API client
 
 [ansi](https://github.com/mgutz/ansi) - Pretty terminal colors
 
 ## Development
+---
+
+
 
 - install `go 1.13`
 - install `docker`
@@ -31,3 +35,20 @@ token=slackbot_api_token
 If docker isn't working or you don't want to use docker you will have to load the environment variables some other way
 
 `token=slackbot_api_token <other env vars from .env> ./chihuahua-bot`
+
+### Useful development commands
+
+This section is mostly dedicated to docker since it makes development so much easier.
+
+- `docker-compose up` will run the last built version of the bot and print output of all containers
+  - `docker-compose up --build` will rebuild all the containers, useful when files change
+  - `docker-compose up -d` will run the containers in the background
+  - I usually run `docker-compose up --build -d`
+- `docker-compose down` will tear down all containers
+- `docker image prune` will delete stopped containers to get some disk space back
+- `docker logs <container>` will show you the output of a container running in the background
+  - `docker logs chibot` will show you the bot's output
+  - `docker logs mongodb` will show you the db output
+- `docker exec -it <container> /bin/bash` will put you in a terminal inside a container
+  - `docker exec -it mongodb /bin/bash` will be useful to query the mongodb manually. 
+  - You could also download a mongo gui (mongodb compass) and point it to the default mongo ports it provides while the container is running.
