@@ -1,8 +1,13 @@
 package handlers
 
 import (
+	"bufio"
 	"github.com/nlopes/slack"
+	"log"
+	"os"
 )
+
+const ADJECTIVES_FILE = "data/adjectives.txt"
 
 // ReplyFn replies to the channel that triggered this event with a message
 type ReplyFn func(*slack.MessageEvent, string)
@@ -20,7 +25,13 @@ var definitions = []*HandlerDefinition{
 	TacoHandler,
 	KarmaHandler,
 	ShowKarmaHandler,
+	ThingGotHandler,
+	BigShaqHandler,
 }
+
+// List of strings that will be populated with adjectives from a text
+// file on disk.
+var adjectives []string
 
 // HandleMessages from the real time messaging api, passing them off to the correct fn
 func (handler *Handler) HandleMessages(event *slack.MessageEvent) {
@@ -28,7 +39,7 @@ func (handler *Handler) HandleMessages(event *slack.MessageEvent) {
 
 	for _, definition := range definitions {
 		if definition.Match(message) {
-			handler.RTM.SendMessage(handler.RTM.NewTypingMessage(event.Channel))
+			handler.RTM.NewTypingMessage(event.Channel)
 
 			// This function must reply with something or else the bot will appear to be typing forever
 			definition.Handle(handler.Reply, event)
@@ -61,6 +72,24 @@ func (handler *Handler) Listen() {
 	}
 }
 
+// PopulateAdjectives populates a global list from a text file containing
+// a list of adjectives.
+func PopulateAdjectives() {
+	// Initialize global array of strings
+	adjectives = []string{}
+
+	file, err := os.Open(ADJECTIVES_FILE)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		adjectives = append(adjectives, scanner.Text())
+	}
+}
+
 // NewClient returns a slack client that is ready to listen to real time messages
 func NewClient(token string) (*Handler, error) {
 	handler := &Handler{}
@@ -79,6 +108,9 @@ func NewClient(token string) (*Handler, error) {
 	if err != nil {
 		return handler, err
 	}
+
+	// Populate adjectives list from disk on file
+	PopulateAdjectives()
 
 	// Our bot's ID
 	botID := botUser.ID
