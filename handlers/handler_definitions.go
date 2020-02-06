@@ -14,7 +14,7 @@ import (
 // HandlerDefinition models a function that replies to a message that matches its criteria
 type HandlerDefinition struct {
 	Match  func(string) bool
-	Handle func(ReplyFn, *slack.MessageEvent)
+	Handle func(ReplyFn, *slack.MessageEvent, *Handler)
 }
 
 var goodFoods = []string{
@@ -41,15 +41,18 @@ var noisesTheTingMakes = []string{
 	"draaaaaa",
 }
 
+// ThingGotRegex - for use in ThingGotHandler()
+var ThingGotRegex = "(\\w+) got (a |that |an |dat )?(.*)\\?"
+
 // ThingGotHandler responds to a message that contain a substring that matches
 // the regex "(\w+) got (\w+)?"
 var ThingGotHandler = &HandlerDefinition{
 	Match: func(message string) bool {
-		matched, _ := regexp.MatchString("(\\w+) got (.*)\\?", message)
+		matched, _ := regexp.MatchString(ThingGotRegex, message)
 		return matched
 	},
-	Handle: func(reply ReplyFn, event *slack.MessageEvent) {
-		matchRE := regexp.MustCompile("(\\w+) got (.*)\\?")
+	Handle: func(reply ReplyFn, event *slack.MessageEvent, handler *Handler) {
+		matchRE := regexp.MustCompile(ThingGotRegex)
 		match := matchRE.FindStringSubmatch(event.Text)
 
 		// 'match' should contain 3 elements: the first being the entire
@@ -61,7 +64,28 @@ var ThingGotHandler = &HandlerDefinition{
 		// Index to a random spot in the list of adjectives
 		rand.Seed(time.Now().Unix())
 		index := rand.Intn(len(adjectives) - 1)
-		buf := fmt.Sprintf("%s got %s %s", match[1], adjectives[index], match[2])
+
+		// Handle prepositions
+		var substr string
+		if len(match) == 4 {
+			substr = fmt.Sprintf("%s%s %s", match[2],
+				adjectives[index], match[3])
+		} else {
+			substr = fmt.Sprintf("%s %s", adjectives[index],
+				match[2])
+		}
+
+		// Replace 'i'or 'I' with the user's name
+		if match[1] == "i" || match[1] == "I" {
+			user, _ := handler.API.GetUserInfo(event.User)
+			match[1] = user.Profile.RealName
+
+			// Replace instances of 'my' with 'their'
+			myRE := regexp.MustCompile("(?i)(my)")
+			substr = myRE.ReplaceAllLiteralString(substr, "their")
+		}
+
+		buf := fmt.Sprintf("%s got %s\n", match[1], substr)
 		reply(event, buf)
 	},
 }
@@ -72,7 +96,7 @@ var BigShaqHandler = &HandlerDefinition{
 		matched, _ := regexp.MatchString("ting go\\?", message)
 		return matched
 	},
-	Handle: func(reply ReplyFn, event *slack.MessageEvent) {
+	Handle: func(reply ReplyFn, event *slack.MessageEvent, handler *Handler) {
 		// Determine a number of noises the ting makes...the number
 		// 15 is kind of arbitrary, anything longer would be even _more_
 		// obnoxious.
@@ -104,7 +128,7 @@ var TacoHandler = &HandlerDefinition{
 
 		return validFood
 	},
-	Handle: func(reply ReplyFn, event *slack.MessageEvent) {
+	Handle: func(reply ReplyFn, event *slack.MessageEvent, handler *Handler) {
 		goodFood, found := funk.FindString(goodFoods, func(food string) bool {
 			if strings.Contains(event.Text, food) {
 				return true
@@ -140,7 +164,7 @@ var KarmaHandler = &HandlerDefinition{
 
 		return matched
 	},
-	Handle: func(reply ReplyFn, event *slack.MessageEvent) {
+	Handle: func(reply ReplyFn, event *slack.MessageEvent, handler *Handler) {
 		expression, err := regexp.Compile(karmaRegex)
 		if err != nil {
 			reply(event, "Could not track karma on your message, sorry!")
@@ -188,7 +212,7 @@ var ShowKarmaHandler = &HandlerDefinition{
 	Match: func(message string) bool {
 		return strings.HasPrefix(strings.ToLower(message), "karma") && len(strings.TrimSpace(message)) > len("karma")
 	},
-	Handle: func(reply ReplyFn, event *slack.MessageEvent) {
+	Handle: func(reply ReplyFn, event *slack.MessageEvent, handler *Handler) {
 		subjects := strings.Split(event.Text, " ")[1:]
 
 		buf := ""
