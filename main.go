@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/cephalization/chihuahua-bot/db"
 	"github.com/cephalization/chihuahua-bot/handlers"
 	"github.com/cephalization/chihuahua-bot/utils"
 
@@ -18,7 +19,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	server, err := handlers.NewClient(token)
+	dbClient, err := db.NewDatabaseClient()
+	if err != nil {
+		log.Fatal(err)
+		os.Exit(1)
+	}
+
+	server, err := handlers.NewClient(token, dbClient)
 	if err != nil {
 		log.Fatal(err)
 		os.Exit(1)

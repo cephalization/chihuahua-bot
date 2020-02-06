@@ -2,9 +2,11 @@ package handlers
 
 import (
 	"bufio"
-	"github.com/nlopes/slack"
 	"log"
 	"os"
+
+	"github.com/nlopes/slack"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 // AdjectivesFile - path to file with list of adjectives
@@ -15,10 +17,11 @@ type ReplyFn func(*slack.MessageEvent, string)
 
 // Handler contains utils to help message handlers respond to messages
 type Handler struct {
-	Reply ReplyFn
-	RTM   *slack.RTM
-	API   *slack.Client
-	ID    string
+	Reply    ReplyFn
+	RTM      *slack.RTM
+	API      *slack.Client
+	ID       string
+	DBClient *mongo.Client
 }
 
 // These definitions will listen for message text and then perform an action
@@ -92,7 +95,7 @@ func PopulateAdjectives() {
 }
 
 // NewClient returns a slack client that is ready to listen to real time messages
-func NewClient(token string) (*Handler, error) {
+func NewClient(token string, dbClient *mongo.Client) (*Handler, error) {
 	handler := &Handler{}
 
 	// slack client
@@ -128,10 +131,11 @@ func NewClient(token string) (*Handler, error) {
 
 	// Create our client handler
 	handler = &Handler{
-		API:   api,
-		RTM:   rtm,
-		ID:    botID,
-		Reply: reply,
+		API:      api,
+		RTM:      rtm,
+		ID:       botID,
+		Reply:    reply,
+		DBClient: dbClient,
 	}
 
 	return handler, nil
