@@ -9,8 +9,9 @@ services:
     build: .
     ports:
       - 8080:8080
-    depends_on: 
+    depends_on:
       - database
+    restart: on-failure
   database:
     image: "mongo"
     container_name: "mongodb"
@@ -20,3 +21,4 @@ services:
       - ./mongo-volume:/data/db # mongo data will be stored locally, not in container
     ports:
       - "27017-27019:27017-27019"
+    restart: on-failure
