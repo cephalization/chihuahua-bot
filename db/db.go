@@ -9,9 +9,10 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-// NewDatabaseClient returns a handle onto the running mongo db
+// NewDatabase returns a handle onto the running mongo db
 // https://www.mongodb.com/blog/post/mongodb-go-driver-tutorial
-func NewDatabaseClient() (*mongo.Client, error) {
+// https://godoc.org/go.mongodb.org/mongo-driver/mongo
+func NewDatabase() (*mongo.Database, error) {
 
 	// Get credentials from env
 	dbName, err := utils.GetEnv("MONGO_INITDB_DATABASE")
@@ -27,7 +28,7 @@ func NewDatabaseClient() (*mongo.Client, error) {
 		return nil, err
 	}
 
-	uri := fmt.Sprintf("mongodb://%s:%s@127.0.0.1:27017/%s", dbUser, dbPassword, dbName)
+	uri := fmt.Sprintf("mongodb://%s:%s@database:27017", dbUser, dbPassword)
 
 	// TODO: learn about context
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
@@ -35,5 +36,7 @@ func NewDatabaseClient() (*mongo.Client, error) {
 		return nil, err
 	}
 
-	return client, nil
+	DB := client.Database(dbName)
+
+	return DB, nil
 }

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"fmt"
 	"math/rand"
 	"regexp"
@@ -9,6 +10,8 @@ import (
 
 	"github.com/nlopes/slack"
 	"github.com/thoas/go-funk"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 // HandlerDefinition models a function that replies to a message that matches its criteria
@@ -154,10 +157,14 @@ var TacoHandler = &HandlerDefinition{
 	},
 }
 
+type update struct {
+	filter bson.D
+	update bson.D
+}
+
 var karmaRegex = `\w*\b(--|\+\+)`
 
 // KarmaHandler responds to a message ending in ++ or -- by tracking score on the word in the message
-// TODO: track karma in db
 var KarmaHandler = &HandlerDefinition{
 	Match: func(message string) bool {
 		if len(message) <= 2 {
@@ -185,32 +192,47 @@ var KarmaHandler = &HandlerDefinition{
 		const add = byte('+')
 		const subtract = byte('-')
 
-		// right now buffer is just gonna store a string saying what things to update
-		// in the future it should probably be some kind of map so we can batch all the adds and subtracts
-		// into 1-2 calls to the database
-		buf := ""
+		toUpdate := make(map[string]int, 0)
+		updates := []*update{}
 
+		// Gather scores
+		// Since a user can karma the same thing multiple times we use a map
 		for _, subject := range subjects {
 			action := subject[len(subject)-1]
+			subject := subject[:len(subject)-2]
 
 			if action == add {
-				// debug message
-				buf += fmt.Sprintf("Adding karma to %s\n", subject[:len(subject)-2])
-
-				// TODO: connect to db, increment score for this subject
+				toUpdate[subject]++
 			} else if action == subtract {
-				// debug message
-				buf += fmt.Sprintf("Removing karma from %s\n", subject[:len(subject)-2])
-
-				// TODO: connect to db, decrement score for this subject
+				toUpdate[subject]--
 			}
 		}
 
-		if len(buf) > 0 {
-			reply(event, buf)
-		} else {
-			reply(event, "Sorry, I'm a little confused about what I am tracking karma on!")
+		// Build update structs for mongo
+		for name, score := range toUpdate {
+			updates = append(
+				updates,
+				&update{
+					filter: bson.D{{"name", name}},
+					update: bson.D{{"$inc", bson.D{{"score", score}}}},
+				})
 		}
+
+		// Make updates
+		buf := ""
+		opts := options.Update().SetUpsert(true)
+		collection := handler.DB.Collection("karma")
+		for _, u := range updates {
+			u := u
+
+			_, err := collection.UpdateOne(context.TODO(), u.filter, u.update, opts)
+			if err != nil {
+				buf += "Could not update karma... \n"
+				continue
+			}
+		}
+
+		reply(event, buf)
 	},
 }
 
@@ -220,12 +242,23 @@ var ShowKarmaHandler = &HandlerDefinition{
 		return strings.HasPrefix(strings.ToLower(message), "karma") && len(strings.TrimSpace(message)) > len("karma")
 	},
 	Handle: func(reply ReplyFn, event *slack.MessageEvent, handler *Handler) {
-		subjects := strings.Split(event.Text, " ")[1:]
+		subjects := funk.UniqString(strings.Split(event.Text, " ")[1:])
 
 		buf := ""
+		collection := handler.DB.Collection("karma")
 		for _, subject := range subjects {
-			karma := "?"
-			buf += fmt.Sprintf("Karma for `%s` is %s\n", subject, karma)
+			subject := subject
+
+			var result bson.M
+			err := collection.FindOne(context.TODO(), bson.D{{"name", subject}}).Decode(&result)
+			if err != nil {
+				buf += fmt.Sprintf("No karma found for `%s`\n", subject)
+				continue
+			}
+
+			karma := result["score"]
+
+			buf += fmt.Sprintf("Karma for `%s` is `%d`\n", subject, karma)
 		}
 
 		reply(event, buf)

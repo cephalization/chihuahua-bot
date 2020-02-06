@@ -19,13 +19,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	dbClient, err := db.NewDatabaseClient()
+	DB, err := db.NewDatabase()
 	if err != nil {
 		log.Fatal(err)
 		os.Exit(1)
 	}
 
-	server, err := handlers.NewClient(token, dbClient)
+	server, err := handlers.NewClient(token, DB)
 	if err != nil {
 		log.Fatal(err)
 		os.Exit(1)
