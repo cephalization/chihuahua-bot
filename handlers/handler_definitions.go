@@ -195,11 +195,36 @@ var KarmaHandler = &HandlerDefinition{
 		toUpdate := make(map[string]int, 0)
 		updates := []*update{}
 
+		// If we can get the user's info, try and check they don't upvote themselves later
+		ignoreUserCheck := false
+		userName := ""
+		user, err := handler.API.GetUserInfo(event.User)
+		if err != nil {
+			ignoreUserCheck = true
+		} else {
+			userName = user.Profile.RealName
+		}
+
 		// Gather scores
 		// Since a user can karma the same thing multiple times we use a map
 		for _, subject := range subjects {
 			action := subject[len(subject)-1]
 			subject := subject[:len(subject)-2]
+			skip := false
+
+			// If the subject appears in a part of the user's name, ignore this subject
+			if !ignoreUserCheck && action == add {
+				for _, s := range strings.Split(userName, " ") {
+					if strings.Contains(strings.ToLower(s), strings.ToLower(subject)) {
+						skip = true
+						break
+					}
+				}
+			}
+
+			if skip {
+				continue
+			}
 
 			if action == add {
 				toUpdate[subject]++
