@@ -28,7 +28,7 @@ func (handler *Handler) HandleMessages(event *slack.MessageEvent) {
 
 	for _, definition := range definitions {
 		if definition.Match(message) {
-			handler.RTM.NewTypingMessage(event.Channel)
+			handler.RTM.SendMessage(handler.RTM.NewTypingMessage(event.Channel))
 
 			// This function must reply with something or else the bot will appear to be typing forever
 			definition.Handle(handler.Reply, event)
