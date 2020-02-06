@@ -42,7 +42,7 @@ var noisesTheTingMakes = []string{
 }
 
 // ThingGotRegex - for use in ThingGotHandler()
-var ThingGotRegex = "(\\w+) got (a |that |an |dat )?(.*)\\?"
+var ThingGotRegex = "(\\w+) (?i)got (?i)(a |that |an |dat )?(.*)\\?"
 
 // ThingGotHandler responds to a message that contain a substring that matches
 // the regex "(\w+) got (\w+)?"
@@ -78,13 +78,18 @@ var ThingGotHandler = &HandlerDefinition{
 		}
 
 		// Replace 'i'or 'I' with the user's name
-		if match[1] == "i" || match[1] == "I" {
+		if strings.ToLower(match[1]) == "i" {
 			user, _ := handler.API.GetUserInfo(event.User)
 			match[1] = user.Profile.RealName
 
 			// Replace instances of 'my' with 'their'
 			myRE := regexp.MustCompile("(?i)(my)")
 			substr = myRE.ReplaceAllLiteralString(substr, "their")
+		}
+
+		// Replace "chibot" with I
+		if strings.ToLower(match[1]) == "chibot" {
+			match[1] = "I"
 		}
 
 		buf := fmt.Sprintf("%s got %s\n", match[1], substr)
