@@ -7,7 +7,8 @@ import (
 	"os"
 )
 
-const ADJECTIVES_FILE = "data/adjectives.txt"
+// AdjectivesFile - path to file with list of adjectives
+const AdjectivesFile = "data/adjectives.txt"
 
 // ReplyFn replies to the channel that triggered this event with a message
 type ReplyFn func(*slack.MessageEvent, string)
@@ -42,7 +43,7 @@ func (handler *Handler) HandleMessages(event *slack.MessageEvent) {
 			handler.RTM.SendMessage(handler.RTM.NewTypingMessage(event.Channel))
 
 			// This function must reply with something or else the bot will appear to be typing forever
-			definition.Handle(handler.Reply, event)
+			definition.Handle(handler.Reply, event, handler)
 		}
 	}
 }
@@ -78,7 +79,7 @@ func PopulateAdjectives() {
 	// Initialize global array of strings
 	adjectives = []string{}
 
-	file, err := os.Open(ADJECTIVES_FILE)
+	file, err := os.Open(AdjectivesFile)
 	if err != nil {
 		log.Fatal(err)
 	}
