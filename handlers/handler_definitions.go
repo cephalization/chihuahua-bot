@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"fmt"
+	"math"
 	"math/rand"
 	"regexp"
 	"strings"
@@ -157,9 +158,11 @@ var TacoHandler = &HandlerDefinition{
 	},
 }
 
+// Struct to store query information for a mongo query
+// bson.M is just a map literal, bson.M{"key": value}
 type update struct {
-	filter bson.D
-	update bson.D
+	filter bson.M // map of filter query info
+	update bson.M // map of update operations
 }
 
 var karmaRegex = `\w*\b(--|\+\+)`
@@ -204,6 +207,7 @@ var KarmaHandler = &HandlerDefinition{
 		} else {
 			userName = user.Profile.RealName
 		}
+		chibotDelta := 0
 
 		// Gather scores
 		// Since a user can karma the same thing multiple times we use a map
@@ -228,31 +232,43 @@ var KarmaHandler = &HandlerDefinition{
 
 			if action == add {
 				toUpdate[subject]++
+				if strings.ToLower(subject) == "chibot" {
+					chibotDelta++
+				}
 			} else if action == subtract {
 				toUpdate[subject]--
+				if strings.ToLower(subject) == "chibot" {
+					chibotDelta--
+				}
 			}
 		}
 
-		// Build update structs for mongo
+		// Build update structs for mongo queries
 		for name, score := range toUpdate {
 			updates = append(
 				updates,
 				&update{
-					filter: bson.D{{"name", name}},
-					update: bson.D{{"$inc", bson.D{{"score", score}}}},
+					filter: bson.M{"name": name},
+					update: bson.M{"$inc": bson.M{"score": score}},
 				})
 		}
 
-		// Make updates
-		buf := ""
-		opts := options.Update().SetUpsert(true)
+		// Make update queries
+		buf := ":heavy_check_mark:\n"
+		if chibotDelta > 0 {
+			buf = fmt.Sprintf("%s\n", strings.Repeat(":sdab:", chibotDelta))
+		} else if chibotDelta < 0 {
+			buf = fmt.Sprintf("%s\n", strings.Repeat(":cry:", int(math.Abs(float64(chibotDelta)))))
+		}
+
+		opts := options.Update().SetUpsert(true) // we will create subject in db if not found
 		collection := handler.DB.Collection("karma")
 		for _, u := range updates {
 			u := u
 
 			_, err := collection.UpdateOne(context.TODO(), u.filter, u.update, opts)
 			if err != nil {
-				buf += "Could not update karma... \n"
+				buf = "Could not update karma... \n"
 				continue
 			}
 		}
@@ -275,7 +291,7 @@ var ShowKarmaHandler = &HandlerDefinition{
 			subject := subject
 
 			var result bson.M
-			err := collection.FindOne(context.TODO(), bson.D{{"name", subject}}).Decode(&result)
+			err := collection.FindOne(context.TODO(), bson.M{"name": subject}).Decode(&result)
 			if err != nil {
 				buf += fmt.Sprintf("No karma found for `%s`\n", subject)
 				continue
