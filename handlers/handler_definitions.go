@@ -64,14 +64,16 @@ var ThingGotHandler = &HandlerDefinition{
 		// Index to a random spot in the list of adjectives
 		rand.Seed(time.Now().Unix())
 		index := rand.Intn(len(adjectives) - 1)
+		adjective := adjectives[index]
+		aestheticAdjective := strings.Join(strings.Split(adjective, ""), " ")
 
 		// Handle prepositions
 		var substr string
 		if len(match) == 4 {
-			substr = fmt.Sprintf("%s%s %s", match[2],
-				adjectives[index], match[3])
+			substr = fmt.Sprintf("%s*%s* %s", match[2],
+				aestheticAdjective, match[3])
 		} else {
-			substr = fmt.Sprintf("%s %s", adjectives[index],
+			substr = fmt.Sprintf("*%s* %s", adjective,
 				match[2])
 		}
 
