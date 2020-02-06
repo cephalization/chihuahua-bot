@@ -2,8 +2,10 @@ package handlers
 
 import (
 	"fmt"
+	"math/rand"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/nlopes/slack"
 	"github.com/thoas/go-funk"
@@ -23,6 +25,69 @@ var goodFoods = []string{
 	"bean",
 	"salsa",
 	"nacho",
+}
+
+// The assorted noises the ting can make
+var noisesTheTingMakes = []string{
+	"skrrrrrrrrrr",
+	"braaaaaat",
+	"pop pop",
+	"kun kun",
+	"doon doon",
+	"skyaaaaaaaaaaaaaaaaaaaaaa",
+	"BOOM",
+	"BRAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAT",
+	"skrip skirp skirp",
+	"draaaaaa",
+}
+
+// ThingGotHandler responds to a message that contain a substring that matches
+// the regex "(\w+) got (\w+)?"
+var ThingGotHandler = &HandlerDefinition{
+	Match: func(message string) bool {
+		matched, _ := regexp.MatchString("(\\w+) got (.*)\\?", message)
+		return matched
+	},
+	Handle: func(reply ReplyFn, event *slack.MessageEvent) {
+		matchRE := regexp.MustCompile("(\\w+) got (.*)\\?")
+		match := matchRE.FindStringSubmatch(event.Text)
+
+		// 'match' should contain 3 elements: the first being the entire
+		// matched string, the next two being the two capture groups.
+		if len(match) < 3 {
+			return
+		}
+
+		// Index to a random spot in the list of adjectives
+		rand.Seed(time.Now().Unix())
+		index := rand.Intn(len(adjectives) - 1)
+		buf := fmt.Sprintf("%s got %s %s", match[1], adjectives[index], match[2])
+		reply(event, buf)
+	},
+}
+
+// BigShaqHandler responds to messages containing the string "ting go?"
+var BigShaqHandler = &HandlerDefinition{
+	Match: func(message string) bool {
+		matched, _ := regexp.MatchString("ting go\\?", message)
+		return matched
+	},
+	Handle: func(reply ReplyFn, event *slack.MessageEvent) {
+		// Determine a number of noises the ting makes...the number
+		// 15 is kind of arbitrary, anything longer would be even _more_
+		// obnoxious.
+		rand.Seed(time.Now().Unix())
+		length := rand.Intn(15)
+
+		buf := "ting go"
+
+		// Append noises to 'buf'
+		for i := 0; i < length; i++ {
+			index := rand.Intn(len(noisesTheTingMakes) - 2)
+			buf += fmt.Sprintf(" %s", noisesTheTingMakes[index])
+		}
+		reply(event, buf)
+	},
 }
 
 // TacoHandler responds to a message containing the substring "taco"
