@@ -4,7 +4,16 @@ version: "3"
 # Container definitions
 services:
   chibot:
+    container_name: "chibot"
     env_file: ./.env
     build: .
     ports:
       - 8080:8080
+  database:
+    image: "mongo"
+    container_name: "mongodb"
+    env_file: ./.env
+    volumes:
+      - ./mongo-volume:/data/db # mongo data will be stored locally, not in container
+    ports:
+      - "27017-27019:27017-27019"

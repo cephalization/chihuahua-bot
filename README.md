@@ -16,7 +16,7 @@ Slack bot
   - If you use toolbox you'll have to use their "quickstart-terminal" unfortunately
   - Should probably just do all of this in windows subsystem for linux (wsl)
 - clone this repo
-- create `.env` file with the following contents
+- create `.env` file using `.env.sample` (in the repo) as reference
   - token obtained from https://api.slack.com/legacy/custom-integrations/legacy-tokens once you have permissions to develop on the bot
 
 ```
@@ -28,6 +28,6 @@ token=slackbot_api_token
   - `ctrl-c` will kill the bot like this
 - to shut down bot, run `docker-compose down`
 
-_If docker isn't working
+If docker isn't working or you don't want to use docker you will have to load the environment variables some other way
 
-`token=slackbot_api_token ./chihuahua-bot`
+`token=slackbot_api_token <other env vars from .env> ./chihuahua-bot`
