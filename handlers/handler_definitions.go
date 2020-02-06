@@ -3,7 +3,6 @@ package handlers
 import (
 	"context"
 	"fmt"
-	"math"
 	"math/rand"
 	"regexp"
 	"strings"
@@ -257,11 +256,11 @@ var KarmaHandler = &HandlerDefinition{
 		}
 
 		// Make update queries
-		buf := ":heavy_check_mark:\n"
+		emoji := "heavy_check_mark"
 		if chibotDelta > 0 {
-			buf = fmt.Sprintf("%s\n", strings.Repeat(":sdab:", chibotDelta))
+			emoji = "sdab"
 		} else if chibotDelta < 0 {
-			buf = fmt.Sprintf("%s\n", strings.Repeat(":cry:", int(math.Abs(float64(chibotDelta)))))
+			emoji = "cry"
 		}
 
 		opts := options.Update().SetUpsert(true) // we will create subject in db if not found
@@ -271,12 +270,13 @@ var KarmaHandler = &HandlerDefinition{
 
 			_, err := collection.UpdateOne(context.TODO(), u.filter, u.update, opts)
 			if err != nil {
-				buf = "Could not update karma... \n"
+				emoji = "bangbang"
 				continue
 			}
 		}
 
-		reply(event, buf)
+		// reply(event, buf)
+		handler.API.AddReaction(emoji, slack.NewRefToMessage(event.Channel, event.Timestamp))
 	},
 }
 
