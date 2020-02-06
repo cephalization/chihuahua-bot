@@ -191,6 +191,9 @@ var KarmaHandler = &HandlerDefinition{
 		// array of all strings that match the regex
 		// ex. 'apple++'
 		subjects := expression.FindAllString(event.Text, -1)
+		for i, s := range subjects {
+			subjects[i] = strings.ToLower(s)
+		}
 
 		const add = byte('+')
 		const subtract = byte('-')
@@ -283,7 +286,7 @@ var ShowKarmaHandler = &HandlerDefinition{
 		return strings.HasPrefix(strings.ToLower(message), "karma") && len(strings.TrimSpace(message)) > len("karma")
 	},
 	Handle: func(reply ReplyFn, event *slack.MessageEvent, handler *Handler) {
-		subjects := funk.UniqString(strings.Split(event.Text, " ")[1:])
+		subjects := funk.UniqString(strings.Split(strings.ToLower(event.Text), " ")[1:])
 
 		buf := ""
 		collection := handler.DB.Collection("karma")
