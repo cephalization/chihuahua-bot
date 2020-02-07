@@ -5,9 +5,12 @@ import (
 	"fmt"
 	"math/rand"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
+	"github.com/cephalization/chihuahua-bot/utils"
+	"github.com/cephalization/minestat/Go/minestat"
 	"github.com/nlopes/slack"
 	"github.com/thoas/go-funk"
 	"go.mongodb.org/mongo-driver/bson"
@@ -303,6 +306,68 @@ var ShowKarmaHandler = &HandlerDefinition{
 			karma := result["score"]
 
 			buf += fmt.Sprintf("Karma for `%s` is `%d`\n", subject, karma)
+		}
+
+		reply(event, buf)
+	},
+}
+
+var MinecraftHandler = &HandlerDefinition{
+	Match: func(message string) bool {
+		return strings.Contains(strings.ToLower(message), "minecraft server up") || strings.Contains(strings.ToLower(message), "server up")
+	},
+	Handle: func(reply ReplyFn, event *slack.MessageEvent, handler *Handler) {
+		noConnection := func() {
+			handler.API.AddReaction("no_entry_sign", slack.NewRefToMessage(event.Channel, event.Timestamp))
+		}
+		addressesString, err := utils.GetEnv("MINECRAFT_ADDRESSES")
+		if err != nil {
+			noConnection()
+			return
+		}
+
+		addresses := strings.Split(addressesString, ",")
+
+		buf := ""
+
+		for i, address := range addresses {
+			addressParts := strings.Split(address, ":")
+			if len(addressParts) != 2 {
+				continue
+			}
+
+			minestat.Init(addressParts[0], addressParts[1], 2)
+
+			primaryServer := "Primary "
+			server := ""
+			if i != 0 {
+				server = strconv.Itoa(i + 1)
+				primaryServer = ""
+			}
+
+			if minestat.Online {
+				buf += fmt.Sprintf(`
+--------------------------
+*%sserver %s*
+Address: %s:%s
+Players: %s/%s
+Version: %s
+__________________________
+				`,
+					primaryServer,
+					server,
+					minestat.Address,
+					minestat.Port,
+					minestat.Current_players,
+					minestat.Max_players,
+					minestat.Version,
+				)
+			}
+		}
+
+		if buf == "" {
+			noConnection()
+			return
 		}
 
 		reply(event, buf)

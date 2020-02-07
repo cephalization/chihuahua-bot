@@ -31,6 +31,7 @@ var definitions = []*HandlerDefinition{
 	ShowKarmaHandler,
 	ThingGotHandler,
 	BigShaqHandler,
+	MinecraftHandler,
 }
 
 // List of strings that will be populated with adjectives from a text
