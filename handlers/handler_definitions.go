@@ -48,7 +48,7 @@ var noisesTheTingMakes = []string{
 }
 
 // ThingGotRegex - for use in ThingGotHandler()
-var ThingGotRegex = "(\\w+) (?i)got (?i)(a |that |an |dat )?(.*)\\?"
+var ThingGotRegex = "(\\w+) (?i)got (?i)(a |that |an |dat |them |some |sum |its )?(.*)\\?"
 
 // ThingGotHandler responds to a message that contain a substring that matches
 // the regex "(\w+) got (\w+)?"
