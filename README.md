@@ -2,12 +2,16 @@
 
 Slack bot
 
-## Libraries
+## Notable Libraries
 ---
 
 [Slack](https://github.com/nlopes/slack) - Slack Bot API client
 
 [ansi](https://github.com/mgutz/ansi) - Pretty terminal colors
+
+[gofunk](https://github.com/thoas/go-funk) - Useful util functions for common programming patterns
+
+[mongo driver](https://github.com/mongodb/mongo-go-driver) - Access mongodb data and manipulate it
 
 ## Development
 ---
@@ -36,7 +40,15 @@ If docker isn't working or you don't want to use docker you will have to load th
 
 `token=slackbot_api_token <other env vars from .env> ./chihuahua-bot`
 
+CI is setup on this repo, you can't merge code if it breaks the build or if it does not pass lint
+
 ### Useful development commands
+
+If CI breaks when you push your branch, try these
+
+- `golint ./..` check for linting issues in the repo
+- `gofmt ./..` format code and save changes
+- `go build` there should be no errors after this, you've run this if you tested your code in docker
 
 This section is mostly dedicated to docker since it makes development so much easier.
 
