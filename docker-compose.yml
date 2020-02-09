@@ -18,7 +18,9 @@ services:
     env_file: ./.env
     volumes:
       - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo-js:ro
-      - ./mongo-volume:/data/db # mongo data will be stored locally, not in container
+      - mongo-volume:/data/db # mongo data will be stored locally, not in container
     ports:
       - "27017-27019:27017-27019"
     restart: on-failure
+volumes:
+    mongo-volume:
