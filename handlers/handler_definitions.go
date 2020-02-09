@@ -47,6 +47,8 @@ var noisesTheTingMakes = []string{
 	"draaaaaa",
 }
 
+var adjectives []string
+
 // ThingGotRegex - for use in ThingGotHandler()
 var ThingGotRegex = "(\\w+) (?i)got (?i)(a |that |an |dat |them |some |sum |its )?(.*)\\?"
 
@@ -60,6 +62,11 @@ var ThingGotHandler = &HandlerDefinition{
 	Handle: func(reply ReplyFn, event *slack.MessageEvent, handler *Handler) {
 		matchRE := regexp.MustCompile(ThingGotRegex)
 		match := matchRE.FindStringSubmatch(event.Text)
+
+		if len(adjectives) == 0 {
+			// Populate adjectives list from disk on file
+			adjectives = utils.PopulateAdjectivesFromFile()
+		}
 
 		// 'match' should contain 3 elements: the first being the entire
 		// matched string, the next two being the two capture groups.
@@ -201,7 +208,7 @@ var KarmaHandler = &HandlerDefinition{
 		const subtract = byte('-')
 
 		toUpdate := make(map[string]int, 0)
-		updates := []*update{}
+		var updates []*update
 
 		// If we can get the user's info, try and check they don't upvote themselves later
 		ignoreUserCheck := false

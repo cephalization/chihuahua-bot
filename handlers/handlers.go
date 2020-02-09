@@ -1,16 +1,9 @@
 package handlers
 
 import (
-	"bufio"
-	"log"
-	"os"
-
 	"github.com/nlopes/slack"
 	"go.mongodb.org/mongo-driver/mongo"
 )
-
-// AdjectivesFile - path to file with list of adjectives
-const AdjectivesFile = "data/adjectives.txt"
 
 // ReplyFn replies to the channel that triggered this event with a message
 type ReplyFn func(*slack.MessageEvent, string)
@@ -33,10 +26,6 @@ var definitions = []*HandlerDefinition{
 	BigShaqHandler,
 	MinecraftHandler,
 }
-
-// List of strings that will be populated with adjectives from a text
-// file on disk.
-var adjectives []string
 
 // HandleMessages from the real time messaging api, passing them off to the correct fn
 func (handler *Handler) HandleMessages(event *slack.MessageEvent) {
@@ -77,24 +66,6 @@ func (handler *Handler) Listen() {
 	}
 }
 
-// PopulateAdjectives populates a global list from a text file containing
-// a list of adjectives.
-func PopulateAdjectives() {
-	// Initialize global array of strings
-	adjectives = []string{}
-
-	file, err := os.Open(AdjectivesFile)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer file.Close()
-
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		adjectives = append(adjectives, scanner.Text())
-	}
-}
-
 // NewClient returns a slack client that is ready to listen to real time messages
 func NewClient(token string, DB *mongo.Database) (*Handler, error) {
 	handler := &Handler{}
@@ -113,9 +84,6 @@ func NewClient(token string, DB *mongo.Database) (*Handler, error) {
 	if err != nil {
 		return handler, err
 	}
-
-	// Populate adjectives list from disk on file
-	PopulateAdjectives()
 
 	// Our bot's ID
 	botID := botUser.ID

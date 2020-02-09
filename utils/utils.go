@@ -1,7 +1,9 @@
 package utils
 
 import (
+	"bufio"
 	"fmt"
+	"log"
 	"os"
 )
 
@@ -13,4 +15,26 @@ func GetEnv(name string) (string, error) {
 	}
 
 	return v, nil
+}
+
+// AdjectivesFile - path to file with list of adjectives
+const AdjectivesFile = "data/adjectives.txt"
+
+// PopulateAdjectives populates a global list from a text file containing
+// a list of adjectives.
+func PopulateAdjectivesFromFile() []string {
+	var adjectives []string
+
+	file, err := os.Open(AdjectivesFile)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		adjectives = append(adjectives, scanner.Text())
+	}
+
+	return adjectives
 }
