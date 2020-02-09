@@ -318,7 +318,7 @@ var ShowKarmaHandler = &HandlerDefinition{
 		reply(event, buf)
 	},
 }
-
+// MinecraftHandler checks the status of configured servers and prints it out
 var MinecraftHandler = &HandlerDefinition{
 	Match: func(message string) bool {
 		return strings.Contains(strings.ToLower(message), "minecraft server up") || strings.Contains(strings.ToLower(message), "server up")

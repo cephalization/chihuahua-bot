@@ -20,7 +20,7 @@ func GetEnv(name string) (string, error) {
 // AdjectivesFile - path to file with list of adjectives
 const AdjectivesFile = "data/adjectives.txt"
 
-// PopulateAdjectives populates a global list from a text file containing
+// PopulateAdjectivesFromFile populates a global list from a text file containing
 // a list of adjectives.
 func PopulateAdjectivesFromFile() []string {
 	var adjectives []string
