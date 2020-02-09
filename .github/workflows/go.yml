@@ -25,7 +25,9 @@ jobs:
         fi
 
     - name: Lint code
-      run: golint ./...
+      run: |
+        go get -u golang.org/x/lint/golint
+        golint ./...
 
     - name: Build
       run: go build -v .
