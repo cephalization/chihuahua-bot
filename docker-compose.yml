@@ -7,8 +7,6 @@ services:
     container_name: "chibot"
     env_file: ./.env
     build: .
-    ports:
-      - 8080:8080
     depends_on:
       - database
     restart: on-failure

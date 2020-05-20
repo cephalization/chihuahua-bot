@@ -359,6 +359,7 @@ var MinecraftHandler = &HandlerDefinition{
 Address: %s:%s
 Players: %s/%s
 Version: %s
+%s
 __________________________
 				`,
 					primaryServer,
@@ -368,6 +369,7 @@ __________________________
 					minestat.Current_players,
 					minestat.Max_players,
 					minestat.Version,
+					minestat.Motd,
 				)
 			}
 		}

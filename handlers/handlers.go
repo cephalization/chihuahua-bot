@@ -71,7 +71,7 @@ func NewClient(token string, DB *mongo.Database) (*Handler, error) {
 	handler := &Handler{}
 
 	// slack client
-	api := slack.New(token, slack.OptionDebug(true))
+	api := slack.New(token)
 
 	// check validity of auth token
 	auth, err := api.AuthTest()
