@@ -11,6 +11,7 @@ import (
 
 	"github.com/cephalization/chihuahua-bot/utils"
 	"github.com/cephalization/minestat/Go/minestat"
+	"github.com/chyeh/pubip"
 	"github.com/nlopes/slack"
 	"github.com/thoas/go-funk"
 	"go.mongodb.org/mongo-driver/bson"
@@ -319,6 +320,7 @@ var ShowKarmaHandler = &HandlerDefinition{
 	},
 }
 
+// MinecraftHandler checks the status of running minecraft servers
 var MinecraftHandler = &HandlerDefinition{
 	Match: func(message string) bool {
 		return strings.Contains(strings.ToLower(message), "minecraft server up") || strings.Contains(strings.ToLower(message), "server up")
@@ -327,23 +329,23 @@ var MinecraftHandler = &HandlerDefinition{
 		noConnection := func() {
 			handler.API.AddReaction("no_entry_sign", slack.NewRefToMessage(event.Channel, event.Timestamp))
 		}
-		addressesString, err := utils.GetEnv("MINECRAFT_ADDRESSES")
+		portsString, err := utils.GetEnv("MINECRAFT_PORTS")
 		if err != nil {
 			noConnection()
 			return
 		}
 
-		addresses := strings.Split(addressesString, ",")
+		ports := strings.Split(portsString, ",")
 
 		buf := ""
+		pubIP, err := pubip.GetStr()
+		if err != nil {
+			noConnection()
+			return
+		}
 
-		for i, address := range addresses {
-			addressParts := strings.Split(address, ":")
-			if len(addressParts) != 2 {
-				continue
-			}
-
-			minestat.Init(addressParts[0], addressParts[1], 2)
+		for i, port := range ports {
+			minestat.Init(pubIP, port, 2)
 
 			primaryServer := "Primary "
 			server := ""
